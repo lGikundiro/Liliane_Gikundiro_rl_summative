@@ -37,8 +37,8 @@ LOGS_DIR   = os.path.join(ROOT, "logs", "dqn")
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR,   exist_ok=True)
 
-TRAIN_STEPS = 150_000
-EVAL_EPISODES = 20
+TRAIN_STEPS = 8_000
+EVAL_EPISODES = 3
 SEED = 0
 
 
@@ -51,7 +51,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=1, label="Baseline",
         learning_rate=1e-3, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -59,7 +59,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=2, label="LowLR",
         learning_rate=1e-4, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -67,7 +67,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=3, label="HighLR",
         learning_rate=5e-3, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -75,7 +75,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=4, label="LowGamma",
         learning_rate=1e-3, gamma=0.90, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -83,7 +83,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=5, label="LargeBuffer",
         learning_rate=1e-3, gamma=0.99, batch_size=64,
-        buffer_size=200_000, exploration_fraction=0.3,
+        buffer_size=30_000, exploration_fraction=0.3,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -91,7 +91,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=6, label="LargeBatch",
         learning_rate=1e-3, gamma=0.99, batch_size=256,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -99,7 +99,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=7, label="SoftTarget",
         learning_rate=1e-3, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=200, tau=0.05,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -107,7 +107,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=8, label="DeepNet",
         learning_rate=1e-3, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.2,
+        buffer_size=20_000, exploration_fraction=0.2,
         target_update_interval=500, tau=1.0,
         net_arch=[256, 256, 128], train_freq=4,
     ),
@@ -115,7 +115,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=9, label="MoreExplore",
         learning_rate=1e-3, gamma=0.99, batch_size=64,
-        buffer_size=50_000, exploration_fraction=0.5,
+        buffer_size=20_000, exploration_fraction=0.5,
         target_update_interval=500, tau=1.0,
         net_arch=[64, 64], train_freq=4,
     ),
@@ -123,7 +123,7 @@ SWEEP_CONFIGS: List[Dict[str, Any]] = [
     dict(
         run=10, label="Tuned",
         learning_rate=2e-4, gamma=0.995, batch_size=128,
-        buffer_size=100_000, exploration_fraction=0.25,
+        buffer_size=30_000, exploration_fraction=0.25,
         target_update_interval=300, tau=0.1,
         net_arch=[128, 128], train_freq=4,
     ),
@@ -172,7 +172,7 @@ def build_model(config: Dict, env) -> DQN:
         env=env,
         learning_rate=config["learning_rate"],
         gamma=config["gamma"],
-        batch_size=config["batch_size"],
+        batch_size=min(config["batch_size"], 32),
         buffer_size=config["buffer_size"],
         exploration_fraction=config["exploration_fraction"],
         target_update_interval=config["target_update_interval"],
@@ -258,7 +258,7 @@ def train_best():
     cfg  = BEST_CONFIG
     env  = _flatten_action_wrapper(Monitor(AfricaBrandEnv()))
     model = build_model(cfg, env)
-    model.learn(total_timesteps=300_000, progress_bar=True)
+    model.learn(total_timesteps=20_000, progress_bar=True)
 
     save_path = os.path.join(MODELS_DIR, "dqn_best")
     model.save(save_path)
@@ -290,6 +290,6 @@ if __name__ == "__main__":
         train_best()
     elif args.mode == "eval":
         model, env = load_best()
-        mean_r, std_r = evaluate_policy(model, env, n_eval_episodes=30)
+        mean_r, std_r = evaluate_policy(model, env, n_eval_episodes=5)
         print(f"Evaluation — Mean: {mean_r:.4f} ± {std_r:.4f}")
         env.close()
