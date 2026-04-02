@@ -1,3 +1,3 @@
-from environment.custom_env import MissionEnv, MissionConfig
+from environment.custom_env import AfricaBrandEnv
 
-__all__ = ["MissionEnv", "MissionConfig"]
+__all__ = ["AfricaBrandEnv"]
