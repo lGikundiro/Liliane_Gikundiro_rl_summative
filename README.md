@@ -6,7 +6,7 @@ A reinforcement learning system that trains an intelligent content marketing age
 
 ## Mission
 
-To build systems where storytelling creates real economic opportunity — for brands, for youth, and for Africa. This project frames digital marketing content management as an RL problem, enabling brands to discover optimal content strategies through learned policies rather than trial-and-error or intuition alone.
+To build systems where storytelling creates real economic opportunity — for brands, for youth, and for Africa. This project enables brands to discover optimal content strategies through learned policies rather than trial-and-error or intuition alone.
 
 ---
 
