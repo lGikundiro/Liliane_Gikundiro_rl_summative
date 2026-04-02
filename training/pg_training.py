@@ -18,7 +18,7 @@ import time
 from typing import List, Dict, Any
 
 import numpy as np
-from stable_baselines3 import PPO, A2C
+from stable_baselines3 import PPO
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.callbacks import EvalCallback
@@ -33,8 +33,8 @@ LOGS_DIR   = os.path.join(ROOT, "logs", "pg")
 os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(LOGS_DIR,   exist_ok=True)
 
-TRAIN_STEPS   = 150_000
-EVAL_EPISODES = 20
+TRAIN_STEPS   = 5_000
+EVAL_EPISODES = 3
 SEED          = 0
 
 
@@ -43,53 +43,53 @@ SEED          = 0
 PPO_CONFIGS: List[Dict[str, Any]] = [
     # Run 1 — Baseline PPO
     dict(run=1, label="Baseline",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 2 — Lower LR
     dict(run=2, label="LowLR",
-         learning_rate=1e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=1e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 3 — Higher LR
     dict(run=3, label="HighLR",
-         learning_rate=1e-3, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=1e-3, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 4 — Lower gamma
     dict(run=4, label="LowGamma",
-         learning_rate=3e-4, gamma=0.90, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.90, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 5 — High entropy (more exploration)
     dict(run=5, label="HighEntropy",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.05, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.05, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 6 — Tight clip range
     dict(run=6, label="TightClip",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.1, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.1, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 7 — Wide clip range
     dict(run=7, label="WideClip",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.3, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.3, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 8 — More epochs per update
     dict(run=8, label="MoreEpochs",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=20, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=4, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[64, 64]),
     # Run 9 — Larger network
     dict(run=9, label="DeepNet",
-         learning_rate=3e-4, gamma=0.99, n_steps=2048, batch_size=64,
-         n_epochs=10, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
+         learning_rate=3e-4, gamma=0.99, n_steps=256, batch_size=32,
+         n_epochs=3, ent_coef=0.01, clip_range=0.2, gae_lambda=0.95,
          net_arch=[256, 256, 128]),
     # Run 10 — Combined tuned
     dict(run=10, label="Tuned",
-         learning_rate=2e-4, gamma=0.995, n_steps=1024, batch_size=128,
-         n_epochs=15, ent_coef=0.02, clip_range=0.2, gae_lambda=0.98,
+         learning_rate=2e-4, gamma=0.995, n_steps=128, batch_size=32,
+         n_epochs=4, ent_coef=0.02, clip_range=0.2, gae_lambda=0.98,
          net_arch=[128, 128]),
 ]
 
@@ -97,16 +97,16 @@ PPO_CONFIGS: List[Dict[str, Any]] = [
 # ─── A2C Hyperparameter Sweep ─────────────────────────────────────────────────
 
 A2C_CONFIGS: List[Dict[str, Any]] = [
-    dict(run=1,  label="Baseline",     learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=2,  label="LowLR",        learning_rate=1e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=3,  label="HighLR",       learning_rate=3e-3, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=4,  label="LowGamma",     learning_rate=7e-4, gamma=0.90,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=5,  label="HighEntropy",  learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.05, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=6,  label="LongerRoll",   learning_rate=7e-4, gamma=0.99,  n_steps=20,  ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=7,  label="HighVF",       learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=1.0, max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=8,  label="LowVF",        learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.25,max_grad_norm=0.5,  net_arch=[64, 64]),
-    dict(run=9,  label="DeepNet",      learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[256, 256, 128]),
-    dict(run=10, label="Tuned",        learning_rate=3e-4, gamma=0.995, n_steps=15,  ent_coef=0.02, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[128, 128]),
+    dict(run=1,  label="Baseline",     learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=2,  label="LowLR",        learning_rate=1e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=3,  label="HighLR",       learning_rate=3e-3, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=4,  label="LowGamma",     learning_rate=7e-4, gamma=0.90,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=5,  label="HighEntropy",  learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.05, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=6,  label="LongerRoll",   learning_rate=7e-4, gamma=0.99,  n_steps=8,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=7,  label="HighVF",       learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=1.0, max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=8,  label="LowVF",        learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.25,max_grad_norm=0.5,  net_arch=[32, 32]),
+    dict(run=9,  label="DeepNet",      learning_rate=7e-4, gamma=0.99,  n_steps=5,   ent_coef=0.00, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[64, 64]),
+    dict(run=10, label="Tuned",        learning_rate=3e-4, gamma=0.995, n_steps=8,   ent_coef=0.02, vf_coef=0.5, max_grad_norm=0.5,  net_arch=[32, 32]),
 ]
 
 
@@ -115,16 +115,16 @@ A2C_CONFIGS: List[Dict[str, Any]] = [
 # and very high n_steps (Monte Carlo rollouts) to approximate it.
 
 REINFORCE_CONFIGS: List[Dict[str, Any]] = [
-    dict(run=1,  label="Baseline",   learning_rate=1e-3, gamma=0.99,  n_steps=512, ent_coef=0.00, normalize_advantage=True),
-    dict(run=2,  label="LowLR",      learning_rate=1e-4, gamma=0.99,  n_steps=512, ent_coef=0.00, normalize_advantage=True),
-    dict(run=3,  label="HighLR",     learning_rate=5e-3, gamma=0.99,  n_steps=512, ent_coef=0.00, normalize_advantage=True),
-    dict(run=4,  label="LowGamma",   learning_rate=1e-3, gamma=0.90,  n_steps=512, ent_coef=0.00, normalize_advantage=True),
-    dict(run=5,  label="Entropy",    learning_rate=1e-3, gamma=0.99,  n_steps=512, ent_coef=0.05, normalize_advantage=True),
-    dict(run=6,  label="LongRoll",   learning_rate=1e-3, gamma=0.99,  n_steps=1024,ent_coef=0.00, normalize_advantage=True),
-    dict(run=7,  label="ShortRoll",  learning_rate=1e-3, gamma=0.99,  n_steps=256, ent_coef=0.00, normalize_advantage=True),
-    dict(run=8,  label="NoNorm",     learning_rate=1e-3, gamma=0.99,  n_steps=512, ent_coef=0.00, normalize_advantage=False),
-    dict(run=9,  label="HighGamma",  learning_rate=1e-3, gamma=0.999, n_steps=512, ent_coef=0.00, normalize_advantage=True),
-    dict(run=10, label="Tuned",      learning_rate=5e-4, gamma=0.995, n_steps=800, ent_coef=0.02, normalize_advantage=True),
+    dict(run=1,  label="Baseline",   learning_rate=1e-3, gamma=0.99,  n_steps=64, ent_coef=0.00, normalize_advantage=True),
+    dict(run=2,  label="LowLR",      learning_rate=1e-4, gamma=0.99,  n_steps=64, ent_coef=0.00, normalize_advantage=True),
+    dict(run=3,  label="HighLR",     learning_rate=5e-3, gamma=0.99,  n_steps=64, ent_coef=0.00, normalize_advantage=True),
+    dict(run=4,  label="LowGamma",   learning_rate=1e-3, gamma=0.90,  n_steps=64, ent_coef=0.00, normalize_advantage=True),
+    dict(run=5,  label="Entropy",    learning_rate=1e-3, gamma=0.99,  n_steps=64, ent_coef=0.05, normalize_advantage=True),
+    dict(run=6,  label="LongRoll",   learning_rate=1e-3, gamma=0.99,  n_steps=128, ent_coef=0.00, normalize_advantage=True),
+    dict(run=7,  label="ShortRoll",  learning_rate=1e-3, gamma=0.99,  n_steps=32, ent_coef=0.00, normalize_advantage=True),
+    dict(run=8,  label="NoNorm",     learning_rate=1e-3, gamma=0.99,  n_steps=64, ent_coef=0.00, normalize_advantage=False),
+    dict(run=9,  label="HighGamma",  learning_rate=1e-3, gamma=0.999, n_steps=64, ent_coef=0.00, normalize_advantage=True),
+    dict(run=10, label="Tuned",      learning_rate=5e-4, gamma=0.995, n_steps=64, ent_coef=0.02, normalize_advantage=True),
 ]
 
 BEST_PPO_CONFIG        = PPO_CONFIGS[9]
@@ -188,14 +188,14 @@ def build_reinforce(cfg: Dict, env) -> PPO:
         learning_rate=cfg["learning_rate"],
         gamma=cfg["gamma"],
         n_steps=cfg["n_steps"],
-        batch_size=cfg["n_steps"],   # one batch = full rollout
+        batch_size=min(cfg["n_steps"], 32),   # smaller batch for faster updates
         n_epochs=1,
         clip_range=1.0,
         ent_coef=cfg["ent_coef"],
         vf_coef=0.0,
         normalize_advantage=cfg["normalize_advantage"],
         gae_lambda=1.0,              # no GAE bias — pure MC returns
-        policy_kwargs=dict(net_arch=[64, 64]),
+        policy_kwargs=dict(net_arch=[32, 32]),
         verbose=0,
         seed=SEED,
         tensorboard_log=LOGS_DIR,
@@ -310,7 +310,7 @@ def train_best(algo: str):
     else:
         raise ValueError(f"Unknown algo: {algo}")
 
-    model.learn(total_timesteps=300_000, progress_bar=True)
+    model.learn(total_timesteps=20_000, progress_bar=True)
     save_path = os.path.join(MODELS_DIR, f"{algo}_best")
     model.save(save_path)
     print(f"Model saved to {save_path}.zip")
@@ -335,7 +335,7 @@ def load_best(algo: str):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--algo", choices=["ppo", "a2c", "reinforce", "all"], default="all",
+        "--algo", choices=["ppo", "reinforce", "all"], default="all",
         help="Which algorithm to run"
     )
     parser.add_argument(
@@ -344,7 +344,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    algos = ["reinforce", "ppo", "a2c"] if args.algo == "all" else [args.algo]
+    algos = ["reinforce", "ppo"] if args.algo == "all" else [args.algo]
 
     for algo in algos:
         if args.mode == "sweep":
@@ -353,6 +353,6 @@ if __name__ == "__main__":
             train_best(algo)
         elif args.mode == "eval":
             model, env = load_best(algo)
-            mean_r, std_r = evaluate_policy(model, env, n_eval_episodes=30)
+            mean_r, std_r = evaluate_policy(model, env, n_eval_episodes=5)
             print(f"[{algo.upper()}] Evaluation — Mean: {mean_r:.4f} ± {std_r:.4f}")
             env.close()
